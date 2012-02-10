@@ -4,10 +4,12 @@
  * @author Andrew Norcross
  * @author Jared Atchison
  * @author Bill Erickson
+ * @author Gary Jones
  * @see    https://github.com/jaredatch/Custom-Metaboxes-and-Fields-for-WordPress
  */
 
-/*jslint browser: true, devel: true, indent: 4, maxerr: 50, sub: true */
+/*jslint browser: true, indent: 4, maxerr: 50, sub: true */
+/*jshint bitwise:true, curly:true, eqeqeq:true, forin:true, immed:true, latedef:true, noarg:true, noempty:true, nomen:true, nonew:true, onevar:true, plusplus:true, regexp:true, smarttabs:true, strict:true, trailing:true, undef:true, white:true, browser:true, jquery:true, indent:4, maxerr:50, */
 /*global jQuery, tb_show, tb_remove */
 
 /**
@@ -18,10 +20,12 @@ jQuery(document).ready(function ($) {
 
 	var formfield;
 
+	$('.cmb-tabs').tabs();
+
 	/**
 	 * Initialize timepicker (this will be moved inline in a future release)
 	 */
-	$('.cmb_timepicker').each(function () {
+	$('.cmb-timepicker').each(function () {
 		$('#' + jQuery(this).attr('id')).timePicker({
 			startTime: "07:00",
 			endTime: "22:00",
@@ -34,37 +38,37 @@ jQuery(document).ready(function ($) {
 	/**
 	 * Initialize jQuery UI datepicker (this will be moved inline in a future release)
 	 */
-	$('.cmb_datepicker').each(function () {
-		$('#' + jQuery(this).attr('id')).datepicker();
-		// $('#' + jQuery(this).attr('id')).datepicker({ dateFormat: 'yy-mm-dd' });
+	$('.cmb-datepicker').each(function () {
+		//$('#' + jQuery(this).attr('id')).datepicker();
+		$('#' + jQuery(this).attr('id')).datepicker({ dateFormat: jQuery(this).data('format') });
 		// For more options see http://jqueryui.com/demos/datepicker/#option-dateFormat
 	});
 	// Wrap date picker in class to narrow the scope of jQuery UI CSS and prevent conflicts
-	$("#ui-datepicker-div").wrap('<div class="cmb_element" />');
-	
+	$("#ui-datepicker-div").wrap('<div class="cmb-element" />');
+
 	/**
 	 * Initialize color picker
 	 */
-    $('input:text.cmb_colorpicker').each(function (i) {
-        $(this).after('<div id="picker-' + i + '" style="z-index: 1000; background: #EEE; border: 1px solid #CCC; position: absolute; display: block;"></div>');
+    $('input:text.cmb-colorpicker').each(function (i) {
+        $(this).after('<div id="picker-' + i + '" class="cmb-colorpicker-picker"></div>');
         $('#picker-' + i).hide().farbtastic($(this));
     })
-    .focus(function() {
-        $(this).next().show();
-    })
-    .blur(function() {
-        $(this).next().hide();
-    });
+		.focus(function () {
+			$(this).next().show();
+		})
+		.blur(function () {
+			$(this).next().hide();
+		});
 
 	/**
 	 * File and image upload handling
 	 */
-	$('.cmb_upload_file').change(function () {
+	$('.cmb-upload-file').change(function () {
 		formfield = $(this).attr('name');
 		$('#' + formfield + '_id').val("");
 	});
 
-	$('.cmb_upload_button').live('click', function () {
+	$('.cmb-upload-button').live('click', function () {
 		var buttonLabel;
 		formfield = $(this).prev('input').attr('name');
 		buttonLabel = 'Use as ' + $('label[for=' + formfield + ']').text();
@@ -72,7 +76,7 @@ jQuery(document).ready(function ($) {
 		return false;
 	});
 
-	$('.cmb_remove_file_button').live('click', function () {
+	$('.cmb-remove-file-button').live('click', function () {
 		formfield = $(this).attr('rel');
 		$('input#' + formfield).val('');
 		$('input#' + formfield + '_id').val('');
@@ -87,13 +91,13 @@ jQuery(document).ready(function ($) {
 
 		if (formfield) {
 
-	        if ($(html).html(html).find('img').length > 0) {
+			if ($(html).html(html).find('img').length > 0) {
 				itemurl = $(html).html(html).find('img').attr('src'); // Use the URL to the size selected.
 				itemclass = $(html).html(html).find('img').attr('class'); // Extract the ID from the returned class name.
 				itemClassBits = itemclass.split(" ");
 				itemid = itemClassBits[itemClassBits.length - 1];
 				itemid = itemid.replace('wp-image-', '');
-	        } else {
+			} else {
 				// It's not an image. Get the URL to the file instead.
 				htmlBits = html.split("'"); // jQuery seems to strip out XHTML when assigning the string to an object. Use alternate method.
 				itemurl = htmlBits[1]; // Use the URL to the file.
@@ -106,17 +110,17 @@ jQuery(document).ready(function ($) {
 			image = /(jpe?g|png|gif|ico)$/gi;
 
 			if (itemurl.match(image)) {
-				uploadStatus = '<div class="img_status"><img src="' + itemurl + '" alt="" /><a href="#" class="cmb_remove_file_button" rel="' + formfield + '">Remove Image</a></div>';
+				uploadStatus = '<div class="cmb-img-status"><img src="' + itemurl + '" alt="" /><a href="#" class="cmb-remove-file-button" rel="' + formfield + '">Remove Image</a></div>';
 			} else {
 				// No output preview if it's not an image
 				// Standard generic output if it's not an image.
 				html = '<a href="' + itemurl + '" target="_blank" rel="external">View File</a>';
-				uploadStatus = '<div class="no_image"><span class="file_link">' + html + '</span>&nbsp;&nbsp;&nbsp;<a href="#" class="cmb_remove_file_button" rel="' + formfield + '">Remove</a></div>';
+				uploadStatus = '<div class="no-image"><span class="file-link">' + html + '</span>&nbsp;&nbsp;&nbsp;<a href="#" class="cmb-remove-file-button" rel="' + formfield + '">Remove</a></div>';
 			}
 
 			$('#' + formfield).val(itemurl);
 			$('#' + formfield + '_id').val(itemid);
-			$('#' + formfield).siblings('.cmb_upload_status').slideDown().html(uploadStatus);
+			$('#' + formfield).siblings('.cmb-upload-status').slideDown().html(uploadStatus);
 			tb_remove();
 
 		} else {
